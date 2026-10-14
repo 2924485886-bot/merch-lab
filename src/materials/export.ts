@@ -1,3 +1,4 @@
+import { faceCrop } from './state'
 import type { MaterialState, RenderOptions, Side } from './state'
 import type { MaterialTemplate } from './templates'
 import type { ImageAsset } from './transparency'
@@ -5,10 +6,10 @@ import { defaultBack } from './backs'
 import { renderMaterial } from './render'
 /** Export only Canvas artwork. Both sides share product geometry, finish and viewing angle. */
 export async function renderExport(canvas:HTMLCanvasElement,template:MaterialTemplate,source:ImageAsset,state:MaterialState){
- const back=template.duplex?(state.backImage??await defaultBack(template)):null
+ const back=template.duplex?(state.backImage??(template.backDefault==='front'?source:await defaultBack(template))):null
  const customAsset=state.customAsset??(source.transparent?source:null)
  const renderSide=(target:HTMLCanvasElement,side:Side,size:number)=>{
-  const image=side==='back'?back!:source,crop=side==='back'?state.backCrop:state.crop
+  const image=side==='back'?back!:source,crop=faceCrop(template,state,side)
   const options:RenderOptions={...state,side,customAsset,sourceImage:source.image}
   renderMaterial(target,template,image.image,crop,state.finish,size,false,options)
  }

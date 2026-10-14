@@ -1,6 +1,6 @@
 import type { ImageAsset } from './transparency'
 import { defaultCrop } from './templates'
-import type { Crop, Finish, MaterialId } from './templates'
+import type { Crop, Finish, MaterialId, MaterialTemplate } from './templates'
 import { templates } from './templates'
 export type Side = 'front' | 'back'
 export type ExportMode = 'both' | Side
@@ -23,3 +23,7 @@ export interface RenderOptions {
 }
 export const foilLabels:Record<Foil,string>={none:'无烫金',border:'金色边框',stars:'金色星星'}
 export const shapeLabels:Record<AcrylicShape,string>={rectangle:'长方形',square:'正方形',circle:'圆形',custom:'异形'}
+
+/** Linked bags have one live crop until a separate back photo is uploaded. */
+export const backFollowsFront=(template:MaterialTemplate,state:MaterialState)=>template.backDefault==='front'&&!state.backImage
+export const faceCrop=(template:MaterialTemplate,state:MaterialState,side:Side)=>side==='back'&&!backFollowsFront(template,state)?state.backCrop:state.crop

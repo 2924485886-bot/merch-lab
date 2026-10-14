@@ -1,10 +1,10 @@
-export type MaterialId = 'photocard' | 'postcard' | 'polaroid' | 'strip' | 'ticket' | 'badge' | 'charm' | 'standee' | 'banner'
+export type MaterialId = 'photocard' | 'postcard' | 'polaroid' | 'strip' | 'ticket' | 'badge' | 'charm' | 'standee' | 'banner' | 'tyvek'
 export type Finish = 'glossy' | 'matte' | 'holographic' | 'starlight' | 'glass' | 'default'
 export interface Crop { x: number; y: number; zoom: number }
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface MaterialTemplate {
-  id: MaterialId; name: string; english: string; shape: 'rounded' | 'paper' | 'ticket' | 'circle' | 'acrylic';
-  duplex?: boolean; foilEnabled?: boolean; width: number; height: number; radius: number; regions: Rect[]; finishes: Finish[]; defaultFinish: Finish; rotation: number;
+  id: MaterialId; name: string; english: string; shape: 'rounded' | 'paper' | 'ticket' | 'circle' | 'acrylic' | 'bag';
+  duplex?: boolean; backDefault?: 'front'; foilEnabled?: boolean; width: number; height: number; radius: number; regions: Rect[]; finishes: Finish[]; defaultFinish: Finish; rotation: number;
 }
 // Coordinates use a shared 600 × 600 artboard. Add a template and renderer to extend.
 export const templates: MaterialTemplate[] = [
@@ -17,6 +17,7 @@ export const templates: MaterialTemplate[] = [
   { id:'charm',name:'亚克力挂件',english:'Acrylic Charm',shape:'acrylic',width:236,height:296,radius:55,regions:[{x:195,y:184,w:210,h:260}],finishes:['default'],defaultFinish:'default',rotation:0.06 },
   { id:'standee',name:'亚克力立牌',english:'Acrylic Standee',shape:'acrylic',width:270,height:370,radius:20,regions:[{x:185,y:108,w:230,h:344}],finishes:['default'],defaultFinish:'default',rotation:0 },
   { id:'banner',name:'应援手幅',english:'Slogan Banner',shape:'paper',width:480,height:160,radius:1,regions:[{x:62,y:222,w:476,h:156}],duplex:true,finishes:['default'],defaultFinish:'default',rotation:0 },
+  { id:'tyvek',name:'杜邦袋',english:'Tyvek Tote Bag',shape:'bag',width:420,height:284,radius:0,regions:[{x:96,y:244,w:408,h:248}],duplex:true,backDefault:'front',finishes:['default'],defaultFinish:'default',rotation:0 },
 ]
 export const defaultCrop = (): Crop => ({x:0,y:0,zoom:1})
 export const finishLabels: Record<Finish,{name:string;english:string;description:string}> = {

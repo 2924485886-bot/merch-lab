@@ -2,6 +2,7 @@ import type { Crop, Finish, MaterialTemplate, Rect } from './templates'
 import type { RenderOptions } from './state'
 import { renderFinish, renderFoil } from './finishes'
 import { renderAcrylic } from './acrylic'
+import { renderTyvek } from './tyvek'
 type Ctx = CanvasRenderingContext2D
 const rounded = (c:Ctx,x:number,y:number,w:number,h:number,r:number) => {c.beginPath();c.roundRect(x,y,w,h,r)}
 export function constrainCrop(image: HTMLImageElement, region:Rect, crop:Crop):Crop {
@@ -22,6 +23,7 @@ function shadow(c:Ctx,draw:()=>void){c.save();c.shadowColor='rgba(54,48,40,.18)'
 function body(c:Ctx,t:MaterialTemplate){const x=(600-t.width)/2,y=(600-t.height)/2
  rounded(c,x,y,t.width,t.height,t.radius);c.fillStyle='#fffefb';c.fill(); c.strokeStyle='rgba(100,90,75,.12)';c.lineWidth=1;c.stroke()}
 const renderers:Record<MaterialTemplate['id'],(c:Ctx,t:MaterialTemplate,img:HTMLImageElement,p:Crop,options:RenderOptions)=>void>={
+ tyvek(c,t,img,p){renderTyvek(c,()=>photo(c,img,t.regions[0],p))},
  photocard(c,t,img,p){shadow(c,()=>body(c,t));c.save();rounded(c,178,125,244,350,13);c.clip();photo(c,img,t.regions[0],p);c.restore();rounded(c,178,125,244,350,13);c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.stroke()},
  banner(c,t,img,p){
   // A flat paper edge and shallow lower thickness, using the same artwork in export.
