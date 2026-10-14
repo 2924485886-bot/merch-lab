@@ -1,4 +1,4 @@
-export type MaterialId = 'photocard' | 'postcard' | 'polaroid' | 'strip' | 'ticket' | 'badge' | 'charm' | 'standee'
+export type MaterialId = 'photocard' | 'postcard' | 'polaroid' | 'strip' | 'ticket' | 'badge' | 'charm' | 'standee' | 'banner'
 export type Finish = 'glossy' | 'matte' | 'holographic' | 'starlight' | 'glass' | 'default'
 export interface Crop { x: number; y: number; zoom: number }
 export interface Rect { x: number; y: number; w: number; h: number }
@@ -16,6 +16,7 @@ export const templates: MaterialTemplate[] = [
   { id:'badge',name:'圆形徽章',english:'Button Badge',shape:'circle',width:290,height:290,radius:145,regions:[{x:163,y:163,w:274,h:274}],finishes:['glossy','matte'],defaultFinish:'glossy',rotation:0 },
   { id:'charm',name:'亚克力挂件',english:'Acrylic Charm',shape:'acrylic',width:236,height:296,radius:55,regions:[{x:195,y:184,w:210,h:260}],finishes:['default'],defaultFinish:'default',rotation:0.06 },
   { id:'standee',name:'亚克力立牌',english:'Acrylic Standee',shape:'acrylic',width:270,height:370,radius:20,regions:[{x:185,y:108,w:230,h:344}],finishes:['default'],defaultFinish:'default',rotation:0 },
+  { id:'banner',name:'应援手幅',english:'Slogan Banner',shape:'paper',width:480,height:160,radius:1,regions:[{x:62,y:222,w:476,h:156}],duplex:true,finishes:['default'],defaultFinish:'default',rotation:0 },
 ]
 export const defaultCrop = (): Crop => ({x:0,y:0,zoom:1})
 export const finishLabels: Record<Finish,{name:string;english:string;description:string}> = {

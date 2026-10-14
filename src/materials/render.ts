@@ -8,6 +8,11 @@ export function constrainCrop(image: HTMLImageElement, region:Rect, crop:Crop):C
  const zoom=Math.max(1,Math.min(3,crop.zoom)); const scale=Math.max(region.w/image.naturalWidth,region.h/image.naturalHeight)*zoom
  return {zoom,x:Math.max(-(image.naturalWidth*scale-region.w)/2,Math.min((image.naturalWidth*scale-region.w)/2,crop.x)),y:Math.max(-(image.naturalHeight*scale-region.h)/2,Math.min((image.naturalHeight*scale-region.h)/2,crop.y))}
 }
+/** Fraction of the original photo visible after an aspect-preserving cover crop. */
+export function visiblePhotoFraction(image:HTMLImageElement,region:Rect,crop:Crop):number {
+ const p=constrainCrop(image,region,crop),scale=Math.max(region.w/image.naturalWidth,region.h/image.naturalHeight)*p.zoom
+ return region.w*region.h/(image.naturalWidth*image.naturalHeight*scale*scale)
+}
 function photo(c:Ctx,img:HTMLImageElement,r:Rect,crop:Crop){
  const p=constrainCrop(img,r,crop);const scale=Math.max(r.w/img.naturalWidth,r.h/img.naturalHeight)*p.zoom
  const w=img.naturalWidth*scale,h=img.naturalHeight*scale
@@ -18,6 +23,12 @@ function body(c:Ctx,t:MaterialTemplate){const x=(600-t.width)/2,y=(600-t.height)
  rounded(c,x,y,t.width,t.height,t.radius);c.fillStyle='#fffefb';c.fill(); c.strokeStyle='rgba(100,90,75,.12)';c.lineWidth=1;c.stroke()}
 const renderers:Record<MaterialTemplate['id'],(c:Ctx,t:MaterialTemplate,img:HTMLImageElement,p:Crop,options:RenderOptions)=>void>={
  photocard(c,t,img,p){shadow(c,()=>body(c,t));c.save();rounded(c,178,125,244,350,13);c.clip();photo(c,img,t.regions[0],p);c.restore();rounded(c,178,125,244,350,13);c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.stroke()},
+ banner(c,t,img,p){
+  // A flat paper edge and shallow lower thickness, using the same artwork in export.
+  shadow(c,()=>{rounded(c,60,222,480,160,1);c.fillStyle='#d7d4cd';c.fill();body(c,t)})
+  photo(c,img,t.regions[0],p)
+  rounded(c,60,220,480,160,1);c.strokeStyle='rgba(255,255,255,.65)';c.lineWidth=.8;c.stroke()
+ },
  postcard(c,t,img,p,options){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.fillStyle='#9c9990';c.font='7px Georgia';if(options.side!=='back')c.fillText('A MOMENT TO KEEP.',120,424)},
  polaroid(c,t,img,p){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.fillStyle='#88867e';c.font='italic 15px Georgia';c.textAlign='center';c.fillText('my favorite moment',300,436)},
  strip(c,t,img,p,options){shadow(c,()=>body(c,t));t.regions.forEach((r,i)=>photo(c,options.stripImages?.[i]?.image??options.sourceImage??img,r,options.stripCrops?.[i]??p));c.fillStyle='#74766f';c.font='8px sans-serif';c.textAlign='center';c.fillText('WITH LOVE · MERCH LAB',300,507)},

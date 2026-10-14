@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, Download, ImagePlus, LoaderCircle, Move, RotateCcw, Sparkles, Columns2 } from 'lucide-react'
 import MaterialCanvas from './MaterialCanvas'
 import Comparison, { finishName } from './Comparison'
-import { defaultCrop, finishLabels } from '../materials/templates'
+import { defaultCrop, finishLabels, templates } from '../materials/templates'
 import type { Crop, Finish, MaterialTemplate } from '../materials/templates'
 import { shapeLabels } from '../materials/state'
 import type { AcrylicShape, ExportMode, MaterialState, RenderOptions } from '../materials/state'
 import type { ImageAsset } from '../materials/transparency'
 import { acrylicRegion, needsSilhouette } from '../materials/acrylic'
-import { constrainCrop } from '../materials/render'
+import { constrainCrop, visiblePhotoFraction } from '../materials/render'
 import { hasHardwareAsset } from '../materials/hardware'
 interface Props { template:MaterialTemplate; source:ImageAsset; state:MaterialState; defaultBack:ImageAsset|null; onBackUpload:()=>void; onRenderError:(error:unknown)=>void; saving:boolean; saved:boolean; busy:boolean; update:(state:Partial<MaterialState>)=>void; onBack:()=>void; onSave:()=>void; onStripUpload:(slot:number|'batch')=>void; onCustomUpload:()=>void }
 export default function Editor({template:t,source,state,defaultBack,onBackUpload,onRenderError,saving,saved,busy,update,onBack,onSave,onStripUpload,onCustomUpload}:Props){
@@ -20,7 +20,8 @@ export default function Editor({template:t,source,state,defaultBack,onBackUpload
  function updateCrop(crop:Crop){if(t.id==='strip'){const stripCrops=[...state.stripCrops];stripCrops[slot]=crop;update({stripCrops})}else update(isBack?{backCrop:crop}:{crop})}
  function selectShape(acrylicShape:AcrylicShape){update({acrylicShape,crop:constrainCrop(source.image,acrylicRegion(acrylicShape),state.crop)})}
  const canTilt=t.finishes.length>1||custom
- return <main className="editor"><button className="back" onClick={onBack}><ArrowLeft size={17}/>返回预览墙</button><div className="editor-layout"><div className="editor-preview-column"><div className="editor-stage"><div className="editor-stage-label"><span>LIVE PREVIEW</span><span>0{t.id==='standee'?8:['photocard','postcard','polaroid','strip','ticket','badge','charm'].indexOf(t.id)+1} / 08</span></div><MaterialCanvas key={`${t.id}-${isBack?'back':'front'}`} template={t} image={currentImage} crop={currentCrop} finish={activeFinish} options={options} interactive={ready} mode={custom?'angle':mode} region={region} onAngle={angle=>update({angle})} onChange={updateCrop} onRenderError={onRenderError}/><div className="gesture-hint"><Move size={14}/>{custom?(ready?'拖动调整展示角度':'先上传透明底人物素材'):mode==='angle'?'拖动预览 · 观察反光变化':t.id==='strip'?`正在调整第 ${slot+1} 格 · 拖动或双指缩放`:'拖动调整位置 · 双指缩放照片'}</div></div>
+ return <main className="editor"><button className="back" onClick={onBack}><ArrowLeft size={17}/>返回预览墙</button><div className="editor-layout"><div className="editor-preview-column"><div className="editor-stage"><div className="editor-stage-label"><span>LIVE PREVIEW</span><span>{String(templates.findIndex(item=>item.id===t.id)+1).padStart(2,'0')} / {String(templates.length).padStart(2,'0')}</span></div><MaterialCanvas key={`${t.id}-${isBack?'back':'front'}`} template={t} image={currentImage} crop={currentCrop} finish={activeFinish} options={options} interactive={ready} mode={custom?'angle':mode} region={region} onAngle={angle=>update({angle})} onChange={updateCrop} onRenderError={onRenderError}/><div className="gesture-hint"><Move size={14}/>{custom?(ready?'拖动调整展示角度':'先上传透明底人物素材'):mode==='angle'?'拖动预览 · 观察反光变化':t.id==='strip'?`正在调整第 ${slot+1} 格 · 拖动或双指缩放`:'拖动调整位置 · 双指缩放照片'}</div></div>
+ {t.id==='banner'&&visiblePhotoFraction(currentImage,region,currentCrop)<.5&&<p className="tiny-note" role="status">这张照片需要较大幅度裁切，建议调整构图。</p>}
  {t.duplex&&<div className="duplex-toggle segmented" role="group" aria-label="预览面"><button className={!isBack?'active':''} aria-pressed={!isBack} onClick={()=>update({side:'front'})}>正面</button><button className={isBack?'active':''} aria-pressed={isBack} disabled={!defaultBack&&!state.backImage} onClick={()=>update({side:'back'})}>背面</button></div>}
  {canTilt&&ready&&<div className="preview-actions">{!custom&&<div className="segmented"><button aria-pressed={mode==='crop'} className={mode==='crop'?'active':''} onClick={()=>setMode('crop')}><Move size={13}/>调整照片</button><button aria-pressed={mode==='angle'} className={mode==='angle'?'active':''} onClick={()=>setMode('angle')}><Sparkles size={13}/>观察反光</button></div>}<button className="reset" onClick={()=>update({angle:{x:0,y:0}})}><RotateCcw size={13}/>角度归零</button></div>}
  {t.finishes.length>1&&<div className="angle-control"><label htmlFor="angle">展示倾角 <span>也可切换「观察反光」后拖动</span></label><input id="angle" type="range" min="-1" max="1" step="0.02" value={state.angle.x} onChange={e=>update({angle:{...state.angle,x:Number(e.target.value)}})}/></div>}
