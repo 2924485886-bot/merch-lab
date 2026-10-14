@@ -64,11 +64,18 @@ export function inspectImage(image:HTMLImageElement):ImageAsset{
    }
   }
  }
+ if(transparent&&!silhouette)throw new Error('已识别透明背景，但没有提取到有效的主体轮廓。')
  const asset={image,thumbnail:canvas.toDataURL('image/png'),transparent:transparent&&!!silhouette,silhouette};assetCache.set(image,asset);return asset
 }
 export async function readImage(file:File):Promise<ImageAsset>{
  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('请选择 JPG、PNG 或 WebP 格式的照片。')
  if(file.size>40*1024*1024)throw new Error('照片超过 40 MB，请选择一张更小的图片。')
  const url=URL.createObjectURL(file)
- try{const image=new Image();image.src=url;await image.decode();if(!image.naturalWidth)throw new Error('这张照片未能读取，请重新选择。');return inspectImage(image)}catch{throw new Error('这张照片未能读取，请重新选择。')}finally{URL.revokeObjectURL(url)}
+ try{
+  const image=new Image();image.src=url
+  try{await image.decode();if(!image.naturalWidth)throw new Error('图片尺寸无效。')}
+  catch(cause){throw new Error('图片解码失败，请重新选择 JPG、PNG 或 WebP 图片。',{cause})}
+  try{return inspectImage(image)}
+  catch(cause){const detail=cause instanceof Error?cause.message:'未知错误';throw new Error(`透明轮廓计算失败：${detail}`,{cause})}
+ }finally{URL.revokeObjectURL(url)}
 }

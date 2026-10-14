@@ -3,12 +3,26 @@ import type { Crop, Finish, MaterialTemplate, Rect } from '../materials/template
 import type { Angle, RenderOptions } from '../materials/state'
 import { constrainCrop, renderMaterial } from '../materials/render'
 import { acrylicRegion } from '../materials/acrylic'
-interface Props { template:MaterialTemplate; image:HTMLImageElement; crop:Crop; finish:Finish; options?:RenderOptions; interactive?:boolean; mode?:'crop'|'angle'; region?:Rect; onChange?:(crop:Crop)=>void; onAngle?:(angle:Angle)=>void }
-export default function MaterialCanvas({template,image,crop,finish,options,interactive=false,mode='crop',region,onChange,onAngle}:Props){
+interface Props { template:MaterialTemplate; image:HTMLImageElement; crop:Crop; finish:Finish; options?:RenderOptions; interactive?:boolean; mode?:'crop'|'angle'; region?:Rect; onRenderError?:(error:unknown)=>void; onChange?:(crop:Crop)=>void; onAngle?:(angle:Angle)=>void }
+export default function MaterialCanvas({template,image,crop,finish,options,interactive=false,mode='crop',region,onChange,onAngle,onRenderError}:Props){
  const ref=useRef<HTMLCanvasElement>(null),points=useRef(new Map<number,{x:number;y:number}>()),latest=useRef(crop),angleRef=useRef(options?.angle??{x:0,y:0})
  latest.current=crop;angleRef.current=options?.angle??{x:0,y:0}
+ const failure=useRef<{image:HTMLImageElement;message:string}|null>(null)
  const start=useRef({crop,angle:angleRef.current,center:{x:0,y:0},distance:0})
- useEffect(()=>{const frame=requestAnimationFrame(()=>{if(ref.current)renderMaterial(ref.current,template,image,crop,finish,interactive?900:600,!interactive,options)});return()=>cancelAnimationFrame(frame)},[template,image,crop,finish,interactive,options])
+ useEffect(()=>{
+  const frame=requestAnimationFrame(()=>{
+   const canvas=ref.current;if(!canvas)return
+   try{renderMaterial(canvas,template,image,crop,finish,interactive?900:600,!interactive,options);failure.current=null}
+   catch(error){
+    // rAF exceptions are outside React/upload try-catch. Reset any partial/failed draw.
+    canvas.width=canvas.width;const c=canvas.getContext('2d')
+    if(c){c.scale(canvas.width/600,canvas.height/600);c.fillStyle='#f0efea';c.fillRect(0,0,600,600);c.fillStyle='#85959a';c.font='13px sans-serif';c.textAlign='center';c.fillText('预览绘制失败，请重新上传图片。',300,300)}
+    const message=error instanceof Error?error.message:String(error)
+    if(failure.current?.image!==image||failure.current?.message!==message){failure.current={image,message};console.error('Merch Lab: Canvas render failed',error);onRenderError?.(error)}
+   }
+  });return()=>cancelAnimationFrame(frame)
+ },[template,image,crop,finish,interactive,options,onRenderError])
+
  useEffect(()=>{points.current.clear()},[mode,template.id,image,region?.x,region?.y,region?.w,region?.h])
  function center(){const ps=[...points.current.values()];return {x:ps.reduce((n,p)=>n+p.x,0)/ps.length,y:ps.reduce((n,p)=>n+p.y,0)/ps.length}}
  function distance(){const ps=[...points.current.values()];return ps.length>=2?Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y):0}
