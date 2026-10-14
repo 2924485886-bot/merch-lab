@@ -9,7 +9,7 @@ export default function MaterialCanvas({template,image,crop,finish,options,inter
  latest.current=crop;angleRef.current=options?.angle??{x:0,y:0}
  const start=useRef({crop,angle:angleRef.current,center:{x:0,y:0},distance:0})
  useEffect(()=>{const frame=requestAnimationFrame(()=>{if(ref.current)renderMaterial(ref.current,template,image,crop,finish,interactive?900:600,!interactive,options)});return()=>cancelAnimationFrame(frame)},[template,image,crop,finish,interactive,options])
- useEffect(()=>{points.current.clear()},[mode,template.id,region?.x,region?.y,region?.w,region?.h])
+ useEffect(()=>{points.current.clear()},[mode,template.id,image,region?.x,region?.y,region?.w,region?.h])
  function center(){const ps=[...points.current.values()];return {x:ps.reduce((n,p)=>n+p.x,0)/ps.length,y:ps.reduce((n,p)=>n+p.y,0)/ps.length}}
  function distance(){const ps=[...points.current.values()];return ps.length>=2?Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y):0}
  function rebase(){if(points.current.size)start.current={crop:latest.current,angle:angleRef.current,center:center(),distance:distance()}}

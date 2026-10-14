@@ -18,7 +18,7 @@ function body(c:Ctx,t:MaterialTemplate){const x=(600-t.width)/2,y=(600-t.height)
  rounded(c,x,y,t.width,t.height,t.radius);c.fillStyle='#fffefb';c.fill(); c.strokeStyle='rgba(100,90,75,.12)';c.lineWidth=1;c.stroke()}
 const renderers:Record<MaterialTemplate['id'],(c:Ctx,t:MaterialTemplate,img:HTMLImageElement,p:Crop,options:RenderOptions)=>void>={
  photocard(c,t,img,p){shadow(c,()=>body(c,t));c.save();rounded(c,178,125,244,350,13);c.clip();photo(c,img,t.regions[0],p);c.restore();rounded(c,178,125,244,350,13);c.strokeStyle='rgba(255,255,255,.7)';c.lineWidth=2;c.stroke()},
- postcard(c,t,img,p){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.fillStyle='#9c9990';c.font='7px Georgia';c.fillText('A MOMENT TO KEEP.',120,424)},
+ postcard(c,t,img,p,options){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.fillStyle='#9c9990';c.font='7px Georgia';if(options.side!=='back')c.fillText('A MOMENT TO KEEP.',120,424)},
  polaroid(c,t,img,p){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.fillStyle='#88867e';c.font='italic 15px Georgia';c.textAlign='center';c.fillText('my favorite moment',300,436)},
  strip(c,t,img,p,options){shadow(c,()=>body(c,t));t.regions.forEach((r,i)=>photo(c,options.stripImages?.[i]?.image??options.sourceImage??img,r,options.stripCrops?.[i]??p));c.fillStyle='#74766f';c.font='8px sans-serif';c.textAlign='center';c.fillText('WITH LOVE · MERCH LAB',300,507)},
  ticket(c,t,img,p){shadow(c,()=>body(c,t));photo(c,img,t.regions[0],p);c.save();c.strokeStyle='#b4b5af';c.setLineDash([4,5]);c.beginPath();c.moveTo(390,207);c.lineTo(390,393);c.stroke();c.restore();c.fillStyle='#f0efea';[207,393].forEach(y=>{c.beginPath();c.arc(390,y,10,0,Math.PI*2);c.fill()});c.fillStyle='#4c5352';c.textAlign='center';c.font='9px sans-serif';c.fillText('ADMIT ONE',450,243);c.font='italic 19px Georgia';c.fillText('Love',450,275);c.font='8px sans-serif';c.fillText('NO. 0520',450,301);for(let i=0;i<25;i++){c.fillRect(422+i*2.3,324,i%3===0?2:1,35)}},
@@ -29,9 +29,10 @@ const renderers:Record<MaterialTemplate['id'],(c:Ctx,t:MaterialTemplate,img:HTML
 export function renderMaterial(canvas:HTMLCanvasElement,t:MaterialTemplate,img:HTMLImageElement,crop:Crop,f:Finish,size=800,rotate=true,options:RenderOptions={}){
  if(canvas.width!==size||canvas.height!==size){canvas.width=size;canvas.height=size}
  const c=canvas.getContext('2d');if(!c)return;c.setTransform(size/600,0,0,size/600,0,0);c.clearRect(0,0,600,600);c.fillStyle='#f0efea';c.fillRect(0,0,600,600)
+ const activeFinish=t.finishes.includes(f)?f:t.defaultFinish
  const angle=options.angle??{x:0,y:0};c.save();c.translate(300,300);c.rotate((rotate?t.rotation:0)+angle.x*.065);c.transform(1-angle.x*angle.x*.055,angle.y*.018,angle.x*.018,1-angle.y*angle.y*.055,0,0);c.translate(-300,-300)
- renderers[t.id](c,t,img,crop,{...options,surfaceFinish:f})
+ renderers[t.id](c,t,img,crop,{...options,surfaceFinish:activeFinish})
  if(t.finishes.length>1){c.save();const r=t.id==='badge'?t.regions[0]:{x:(600-t.width)/2,y:(600-t.height)/2,w:t.width,h:t.height}
- c.beginPath();if(t.id==='badge')c.arc(300,300,137,0,Math.PI*2);else c.roundRect(r.x,r.y,r.w,r.h,t.radius);c.clip();renderFinish(c,f,r,angle);if(t.id==='photocard'||t.id==='postcard')renderFoil(c,options.foil??'none',r,angle);c.restore()}
+ c.beginPath();if(t.id==='badge')c.arc(300,300,137,0,Math.PI*2);else c.roundRect(r.x,r.y,r.w,r.h,t.radius);c.clip();renderFinish(c,activeFinish,r,angle);if(t.foilEnabled)renderFoil(c,options.foil??'none',r,angle);c.restore()}
  c.restore()
 }
