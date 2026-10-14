@@ -1,27 +1,23 @@
-/** Local Canvas approximation: wide Tyvek body, gusset and fixed black webbing.
- * Artwork is clipped, never stretched. All detail is deterministic across export sizes.
- */
+/** Flat, full-bleed Tyvek mockup. Shared by live previews and PNG export. */
 type Ctx = CanvasRenderingContext2D
-const bodyPath=()=>new Path2D('M 96 230 Q 295 237 504 230 L 511 474 Q 513 494 499 504 L 111 514 Q 93 510 89 493 L 92 259 Q 92 243 96 230 Z')
-const printPath=()=>new Path2D('M 102 246 Q 295 253 498 245 L 503 474 L 490 496 L 114 503 L 98 487 L 98 261 Z')
+// The photo covers this whole contour, including the shallow bevels at the bottom.
+const bodyPath=()=>new Path2D('M 92 230 Q 300 231 508 230 L 510 461 Q 510 474 503 482 L 472 510 Q 468 514 460 514 L 140 514 Q 133 514 129 510 L 98 482 Q 90 475 90 463 Z')
 function stroke(c:Ctx,path:Path2D,color:string,width:number){c.strokeStyle=color;c.lineWidth=width;c.stroke(path)}
 function strap(c:Ctx,rear:boolean){
- c.save();if(rear)c.transform(.96,0,0,1,25,-18)
- // Closed ribbon contours give the webbing actual width, rather than an oval stroke.
- const band=new Path2D('M 153 287 L 150 240 C 145 197 147 148 164 116 C 184 79 368 77 397 114 C 419 145 423 198 415 246 L 412 287 L 393 287 L 397 243 C 403 198 399 148 381 126 C 360 100 196 102 181 128 C 168 153 166 199 169 239 L 173 287 Z')
- c.save();c.translate(2,2);c.fillStyle='#161616';c.fill(band);c.restore()
- const shade=c.createLinearGradient(150,90,420,275);shade.addColorStop(0,'#393939');shade.addColorStop(.28,'#222222');shade.addColorStop(.6,'#303030');shade.addColorStop(1,'#222222');c.fillStyle=shade;c.fill(band)
+ c.save()
+ // Exactly two closed webbing ribbons, with different drapes and no stacked arc outlines.
+ const band=new Path2D(rear
+  ?'M 201 233 C 206 174 213 114 235 94 C 256 76 356 77 379 94 C 392 114 398 174 404 233 L 388 233 C 384 178 381 124 369 107 C 351 92 264 91 247 107 C 229 127 223 179 217 233 Z'
+  :'M 183 245 C 185 194 194 138 212 103 C 228 73 339 79 359 105 C 381 143 390 196 394 245 L 376 245 C 373 196 369 152 344 117 C 330 96 241 92 228 116 C 212 149 205 199 201 245 Z')
+ c.fillStyle='#222222';c.fill(band)
  c.save();c.clip(band)
- // Dense, low-contrast thread dashes belong only to the black webbing.
- c.drawImage(webbing(),0,0,600,600)
- c.restore()
- stroke(c,new Path2D('M 156 283 L 154 240 C 150 196 151 150 168 119 C 187 85 367 83 393 118 C 414 146 419 198 411 244 L 408 283'),'rgba(255,255,255,.16)',.8)
- stroke(c,new Path2D('M 169 285 L 165 240 C 162 198 164 152 178 126 C 195 96 362 95 384 123 C 404 150 407 199 402 245 L 398 285'),'rgba(0,0,0,.32)',1)
- if(!rear)for(const x of [153,393]){
-  // Sewn attachment tabs extend onto the bag and carry box-and-cross stitches.
-  c.fillStyle='#222222';c.fillRect(x,251,19,36)
-  c.strokeStyle='rgba(207,205,198,.4)';c.lineWidth=.7;c.setLineDash([1.4,1.6]);c.strokeRect(x+3,257,13,25);c.setLineDash([])
-  c.beginPath();c.moveTo(x+3,258);c.lineTo(x+16,281);c.moveTo(x+16,258);c.lineTo(x+3,281);c.stroke()
+ // Soft textile lighting stays within the ribbon, without a hard rim highlight.
+ const shade=c.createLinearGradient(182,100,397,240);shade.addColorStop(0,'rgba(255,255,255,.035)');shade.addColorStop(.5,'rgba(255,255,255,0)');shade.addColorStop(1,'rgba(0,0,0,.09)');c.fillStyle=shade;c.fillRect(180,73,226,175)
+ c.drawImage(webbing(),0,0,600,600);c.restore()
+ if(!rear){
+  // Short stitch lines attach the ribbon ends; there is no separate rectangular patch.
+  c.strokeStyle='rgba(177,177,171,.25)';c.lineWidth=.55;c.setLineDash([1,1.8]);c.beginPath()
+  c.moveTo(187,239);c.lineTo(198,239);c.moveTo(379,239);c.lineTo(391,239);c.stroke();c.setLineDash([])
  }
  c.restore()
 }
@@ -29,51 +25,46 @@ let webbingTexture:HTMLCanvasElement|undefined
 function webbing(){
  if(webbingTexture)return webbingTexture
  const tile=document.createElement('canvas');tile.width=600;tile.height=600;const c=tile.getContext('2d')!
- c.strokeStyle='rgba(255,255,255,.09)';c.lineWidth=.5;c.beginPath()
- for(let y=90;y<289;y+=2.2)for(let x=145;x<425;x+=5){c.moveTo(x,y);c.lineTo(x+2.5,y+.6)}c.stroke()
+ c.strokeStyle='rgba(255,255,255,.065)';c.lineWidth=.4;c.beginPath()
+ for(let y=75;y<247;y+=2.1)for(let x=180;x<406;x+=5){c.moveTo(x,y);c.lineTo(x+2,y+.5)}c.stroke()
  webbingTexture=tile;return tile
 }
 let paperTexture:HTMLCanvasElement|undefined
 function texture(){
  if(paperTexture)return paperTexture
  const tile=document.createElement('canvas');tile.width=600;tile.height=600;const c=tile.getContext('2d')!
- // Nonwoven irregular fibres, deliberately no repeating canvas weave or grid.
  let seed=721;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}
- for(let i=0;i<3600;i++){
-  const x=88+random()*428,y=228+random()*290,angle=random()*Math.PI*2,length=1+random()*8
-  c.strokeStyle=i%3?'rgba(255,255,255,.11)':'rgba(80,71,53,.045)';c.lineWidth=.35+random()*.35;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+Math.cos(angle)*length*.5,y+Math.sin(angle)*length*.5+.7,x+Math.cos(angle)*length,y+Math.sin(angle)*length);c.stroke()
+ // Sparse, nonwoven fibres. No global white veil, canvas grid or glossy reflection.
+ for(let i=0;i<2300;i++){
+  const x=90+random()*420,y=230+random()*284,angle=random()*Math.PI*2,length=.8+random()*5
+  c.strokeStyle=i%3?'rgba(255,255,255,.045)':'rgba(48,42,31,.025)';c.lineWidth=.3+random()*.25;c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+Math.cos(angle)*length*.5,y+Math.sin(angle)*length*.5+.4,x+Math.cos(angle)*length,y+Math.sin(angle)*length);c.stroke()
  }
  paperTexture=tile;return tile
 }
 function crease(c:Ctx,d:string,width:number,opacity:number){
- const p=new Path2D(d);c.save();c.translate(1,-1);stroke(c,p,`rgba(255,255,255,${opacity*.85})`,width);c.restore();stroke(c,p,`rgba(62,54,41,${opacity})`,width*.65)
+ const p=new Path2D(d);c.save();c.translate(.6,-.5);stroke(c,p,`rgba(255,255,255,${opacity*.45})`,width);c.restore();stroke(c,p,`rgba(38,31,22,${opacity})`,width*.7)
 }
 export function renderTyvek(c:Ctx,drawPhoto:()=>void){
  const body=bodyPath()
- // The far strap is behind the opening; the near strap is stitched over the front.
  strap(c,true)
- c.save();c.shadowColor='rgba(50,43,35,.2)';c.shadowBlur=17;c.shadowOffsetY=10;c.fillStyle='#e3e0d7';c.fill(body);c.restore()
- c.save();c.translate(2,2);stroke(c,body,'#d1cdc1',2);c.restore()
- c.fillStyle='#f6f3ea';c.fill(body)
- c.save();c.clip(body);c.save();c.clip(printPath());drawPhoto();c.restore()
- const light=c.createLinearGradient(90,240,520,500);light.addColorStop(0,'rgba(255,255,255,.13)');light.addColorStop(.45,'rgba(255,255,255,0)');light.addColorStop(1,'rgba(55,44,26,.09)');c.fillStyle=light;c.fillRect(88,230,428,290)
+ // A shallow paper thickness and soft cast shadow sit behind the printed face.
+ c.save();c.translate(.4,1);c.shadowColor='rgba(44,37,30,.18)';c.shadowBlur=15;c.shadowOffsetY=7;c.fillStyle='#b5afa4';c.fill(body);c.restore()
+ c.save();c.clip(body)
+ // White is only the substrate for transparent pixels / an explicitly contained image.
+ // The full-bleed cover draw paints directly over it all the way to the silhouette.
+ c.fillStyle='#ffffff';c.fillRect(90,230,420,284);drawPhoto()
  c.drawImage(texture(),0,0,600,600)
- // Sparse soft folds: broad ridges with narrow highlights, not heavy crumpling.
- crease(c,'M 110 284 Q 153 336 117 447',4,.055)
- crease(c,'M 474 267 Q 439 335 485 420',5,.05)
- crease(c,'M 249 253 Q 275 293 266 331 Q 261 349 280 377',3,.035)
- crease(c,'M 135 461 Q 243 444 331 474 Q 404 481 470 458',4,.045)
- crease(c,'M 198 395 Q 239 376 258 409',2,.04)
- // Bottom gusset and folded corners stay in the original body silhouette.
- c.fillStyle='rgba(94,83,63,.1)';c.fill(new Path2D('M 90 469 L 122 491 L 499 484 L 500 505 L 111 514 L 92 495 Z'))
- c.fillStyle='rgba(255,255,255,.17)';c.fill(new Path2D('M 90 469 L 120 491 L 111 514 L 92 495 Z'))
- crease(c,'M 92 471 L 120 491 L 110 513 M 503 471 L 481 491 L 499 504',1.8,.15)
- crease(c,'M 120 491 Q 300 498 481 491',1.3,.075)
- // A subtly raised folded opening hem and edge seam finish the paper body.
- c.fillStyle='rgba(255,255,255,.26)';c.fill(new Path2D('M 96 230 Q 295 237 504 230 L 501 244 Q 299 252 99 245 Z'))
- crease(c,'M 100 245 Q 300 253 501 244',1.2,.11)
- crease(c,'M 97 260 L 94 480 M 504 253 L 507 474',1,.09)
+ // Local irregular paper folds, preserving colour and contrast over the rest of the print.
+ crease(c,'M 98 321 Q 110 347 102 393',1.6,.055)
+ crease(c,'M 496 293 Q 483 328 497 354',1.7,.045)
+ crease(c,'M 205 455 Q 219 443 238 451',1.2,.025)
+ // Printed bottom corners: subtle directional shade, never white triangles or a frame.
+ const left=c.createLinearGradient(91,469,133,505);left.addColorStop(0,'rgba(31,25,19,.025)');left.addColorStop(1,'rgba(31,25,19,.095)');c.fillStyle=left;c.fill(new Path2D('M 90 463 L 135 491 L 129 513 L 98 482 Z'))
+ const right=c.createLinearGradient(510,463,470,504);right.addColorStop(0,'rgba(31,25,19,.02)');right.addColorStop(1,'rgba(31,25,19,.075)');c.fillStyle=right;c.fill(new Path2D('M 510 461 L 469 490 L 472 513 L 503 482 Z'))
+ crease(c,'M 91 463 L 135 491 M 509 462 L 469 490',.8,.085)
+ // Only a fine dark hem at the opening; artwork underneath remains full bleed.
+ stroke(c,new Path2D('M 93 231 Q 300 232 507 231'),'rgba(33,27,21,.14)',.65)
  c.restore()
- stroke(c,body,'rgba(88,78,60,.24)',.9)
+ // No light-coloured outside stroke: the contour itself defines the printed edge.
  strap(c,false)
 }

@@ -19,7 +19,13 @@ async function range(value:string){const e=document.getElementById('zoom') as HT
 const canvas=()=>document.querySelector<HTMLCanvasElement>('.editor-stage canvas')!
 const signature=()=>canvas().toDataURL()
 async function fixture(name:string,type='image/png'){
- const c=document.createElement('canvas');c.width=720;c.height=960;const g=c.getContext('2d')!;g.drawImage(await loadDemo(),0,0);if(name==='back'){g.fillStyle='#F6DCE6';g.fillRect(0,0,720,250);g.fillStyle='#333333';g.font='48px Georgia';g.fillText('WITH LOVE',190,130)}const blob=await new Promise<Blob>(r=>c.toBlob(b=>r(b!),type));return new File([blob],name,{type:blob.type})
+ const c=document.createElement('canvas');c.width=name==='front'?1260:720;c.height=name==='front'?852:960;const g=c.getContext('2d')!,demo=await loadDemo()
+ if(name==='front'){
+  // Original landscape full-bleed design with dark edge bands to expose unwanted white margins.
+  g.fillStyle='#276878';g.fillRect(0,0,1260,852);g.save();g.beginPath();g.rect(480,0,780,852);g.clip();const scale=Math.max(780/720,852/960);g.drawImage(demo,480+(780-720*scale)/2,(852-960*scale)/2,720*scale,960*scale);g.restore()
+  g.fillStyle='#FAF9F6';g.font='italic 112px Georgia';g.fillText('With',64,288);g.fillText('Love.',64,419);g.font='21px sans-serif';g.fillText('EVERY MOMENT TO KEEP',67,505);g.fillStyle='#F6DCE6';g.beginPath();g.arc(172,643,35,0,Math.PI*2);g.fill();g.strokeStyle='#276878';g.lineWidth=40;g.strokeRect(0,0,1260,852)
+ }else{g.drawImage(demo,0,0);g.fillStyle='#F6DCE6';g.fillRect(0,0,720,250);g.fillStyle='#333333';g.font='48px Georgia';g.fillText('WITH LOVE',190,130)}
+ const blob=await new Promise<Blob>(r=>c.toBlob(b=>r(b!),type));return new File([blob],name,{type:blob.type})
 }
 // Test-only synthetic pointers use the production gesture handler; no native pointer capture exists for synthetic events.
 async function gesture(pinch=false){const c=canvas(),box=c.getBoundingClientRect(),x=box.left+box.width/2,y=box.top+box.height/2,native=c.setPointerCapture;c.setPointerCapture=()=>{};const send=(type:string,id:number,dx:number,dy:number)=>c.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerId:id,pointerType:'touch',clientX:x+dx,clientY:y+dy}));send('pointerdown',1,pinch?-20:0,0);if(pinch)send('pointerdown',2,20,0);send('pointermove',1,pinch?-35:25,pinch?0:25);if(pinch)send('pointermove',2,35,0);send('pointerup',1,0,0);if(pinch)send('pointerup',2,0,0);c.setPointerCapture=native;await tick()}
@@ -33,6 +39,12 @@ createRoot(document.getElementById('root')!).render(<App/>);
  await until(()=>!!document.querySelector('input[aria-label="选择照片"]'))
  const frontFile=await fixture('front'),backFile=await fixture('back'),source=await readImage(frontFile),t=templates.find(t=>t.id==='tyvek')!
  check(t.width>t.height&&t.duplex&&t.backDefault==='front','Wide bag template defaults to a linked back');await upload('选择照片',frontFile);check(document.querySelectorAll('.material-item').length===10,'Wall has ten materials and correctly numbered bag');check(document.querySelector('.material-item:last-child .tile-number')?.textContent==='10','Bag number is 10, not 010');await click('小卡');await range('1.3');await click('返回预览墙');await click('杜邦袋');check(!document.querySelector('.finish-options')&&!document.querySelector('.shape-options'),'Bag adds no finish or colour panel')
+ const probe=document.createElement('canvas');probe.width=1260;probe.height=852;const pc=probe.getContext('2d')!;pc.fillStyle='#276878';pc.fillRect(0,0,1260,852);const edgeProbe=new Image();edgeProbe.src=probe.toDataURL();await edgeProbe.decode()
+ const fullBleed=document.createElement('canvas');renderMaterial(fullBleed,t,edgeProbe,{zoom:1,x:0,y:0},'default',600,false)
+ const pixels=fullBleed.getContext('2d')!
+ for(const [x,y] of [[94,285],[506,300],[300,234],[300,511],[114,493],[485,495]]){const colour=pixels.getImageData(x,y,1,1).data;check(colour[0]<120&&colour[1]<160&&colour[2]<175,`Full-bleed print reaches edge/bevel ${x},${y} without a white border`)}
+ const interior=pixels.getImageData(140,400,1,1).data;check(Math.abs(interior[0]-39)<5&&Math.abs(interior[1]-104)<5&&Math.abs(interior[2]-120)<5,'Matte material retains design colour without a grey-white veil')
+ const outside=pixels.getImageData(75,300,1,1).data;check(outside[0]>200&&outside[1]>200&&outside[2]>200,'Artwork stays inside the actual silhouette')
  await range('1.4');const initial=signature();await gesture();check(signature()!==initial,'Touch drag moves artwork within the bag print area');await gesture(true);check(Number((document.getElementById('zoom') as HTMLInputElement).value)>1.4,'Two-finger gesture scales artwork');const front=signature(),zoom=(document.getElementById('zoom') as HTMLInputElement).value
  await click('背面');check(signature()===front&&(document.getElementById('zoom') as HTMLInputElement).value===zoom,'Default back matches front image and crop exactly');await range('1.65');const editedLinkedBack=signature();await click('正面');check(signature()===editedLinkedBack,'Editing linked back also keeps both faces synchronized');await range('1.8');const updatedFront=signature();await click('背面');check(signature()===updatedFront,'Later front edits update linked back')
  const same=reduced(canvas());await exportMatches('仅正面',same,same);await exportMatches('仅背面',same,same);await exportMatches('双面并排',same,same)
