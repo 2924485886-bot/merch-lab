@@ -13,9 +13,13 @@ function shell(c:Ctx,path:Path2D){
  c.strokeStyle='rgba(255,255,255,.94)';c.lineWidth=17;c.stroke(path);c.strokeStyle='rgba(191,218,225,.7)';c.lineWidth=13;c.stroke(path);c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=9;c.stroke(path)
 }
 function edge(c:Ctx,path:Path2D){c.strokeStyle='rgba(106,153,167,.34)';c.lineWidth=.8;c.stroke(path)}
-function customPath(asset:ImageAsset,standee:boolean){
- const s=asset.silhouette!,maxW=standee?238:235,maxH=standee?332:292,scale=Math.min(maxW/s.bounds.w,maxH/s.bounds.h)
- const w=s.bounds.w*scale,h=s.bounds.h*scale,x=300-w/2,y=standee?438-h:(600-h)/2+25
+export function constrainSilhouetteCrop(t:MaterialTemplate,crop:Crop):Crop {
+ return {...crop,zoom:Math.max(.5,Math.min(1.35,crop.zoom)),x:Math.max(-60,Math.min(60,crop.x)),y:Math.max(-45,Math.min(t.id==='standee'?0:45,crop.y))}
+}
+function customPath(asset:ImageAsset,standee:boolean,crop:Crop){
+ const s=asset.silhouette!,maxW=standee?238:235,maxH=standee?332:292,initialScale=Math.min(maxW/s.bounds.w,maxH/s.bounds.h)
+ const scale=initialScale*Math.min(crop.zoom,420/(s.bounds.w*initialScale),380/(s.bounds.h*initialScale))
+ const w=s.bounds.w*scale,h=s.bounds.h*scale,x=300-w/2+crop.x,y=standee?438-h+crop.y:(600-h)/2+25+crop.y
  const path=new Path2D();s.points.forEach((p,i)=>i?path.lineTo(x+p.x*w,y+p.y*h):path.moveTo(x+p.x*w,y+p.y*h));path.closePath()
  const low=Math.max(...s.points.map(p=>p.y)),support=s.points.filter(p=>p.y>low-.01),contactPoint=support.reduce((best,p)=>Math.abs(p.x-.5)<Math.abs(best.x-.5)?p:best),contactX=contactPoint.x
  const top=Math.min(...s.points.map(p=>p.y)),upper=s.points.filter(p=>p.y<top+.035),hookX=upper.reduce((sum,p)=>sum+p.x,0)/upper.length
@@ -35,7 +39,7 @@ export function renderAcrylic(c:Ctx,t:MaterialTemplate,img:HTMLImageElement,crop
    if(t.id==='standee')base(c,300);else renderHardware(c,300,174)
    c.fillStyle='#85959a';c.textAlign='center';c.font='13px sans-serif';c.fillText('需要透明底 PNG / WebP',300,291);c.font='10px sans-serif';c.fillText('在编辑页上传人物素材',300,316);return
   }
-  const standee=t.id==='standee',{path,target,contact,hook}=customPath(asset,standee)
+  const standee=t.id==='standee',{path,target,contact,hook}=customPath(asset,standee,constrainSilhouetteCrop(t,options.customCrop??{x:0,y:0,zoom:1}))
   if(standee){base(c,contact.x);c.beginPath();c.roundRect(contact.x-17,contact.y-9,34,Math.max(24,472-contact.y+9),5);c.fillStyle='rgba(211,233,239,.84)';c.fill();c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=2;c.stroke()}
   shell(c,path);c.save();c.clip(path);const b=asset.silhouette.bounds;c.drawImage(asset.image,b.x,b.y,b.w,b.h,target.x,target.y,target.w,target.h);c.restore();edge(c,path)
   if(!standee)renderHardware(c,hook.x,hook.y-5)

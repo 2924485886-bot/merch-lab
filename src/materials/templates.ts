@@ -1,6 +1,6 @@
 export type MaterialId = 'photocard' | 'postcard' | 'polaroid' | 'strip' | 'ticket' | 'badge' | 'charm' | 'standee' | 'banner' | 'tyvek'
 export type Finish = 'glossy' | 'matte' | 'holographic' | 'starlight' | 'glass' | 'default'
-export interface Crop { x: number; y: number; zoom: number }
+export interface Crop { x: number; y: number; zoom: number; fit?: 'cover' | 'contain'; selection?: Rect; ratio?: string }
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface MaterialTemplate {
   id: MaterialId; name: string; english: string; shape: 'rounded' | 'paper' | 'ticket' | 'circle' | 'acrylic' | 'bag';

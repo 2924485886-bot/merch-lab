@@ -1,24 +1,12 @@
-import type { Crop, Finish, MaterialTemplate, Rect } from './templates'
+import type { Crop, Finish, MaterialTemplate } from './templates'
 import type { RenderOptions } from './state'
 import { renderFinish, renderFoil } from './finishes'
 import { renderAcrylic } from './acrylic'
 import { renderTyvek } from './tyvek'
 type Ctx = CanvasRenderingContext2D
 const rounded = (c:Ctx,x:number,y:number,w:number,h:number,r:number) => {c.beginPath();c.roundRect(x,y,w,h,r)}
-export function constrainCrop(image: HTMLImageElement, region:Rect, crop:Crop):Crop {
- const zoom=Math.max(1,Math.min(3,crop.zoom)); const scale=Math.max(region.w/image.naturalWidth,region.h/image.naturalHeight)*zoom
- return {zoom,x:Math.max(-(image.naturalWidth*scale-region.w)/2,Math.min((image.naturalWidth*scale-region.w)/2,crop.x)),y:Math.max(-(image.naturalHeight*scale-region.h)/2,Math.min((image.naturalHeight*scale-region.h)/2,crop.y))}
-}
-/** Fraction of the original photo visible after an aspect-preserving cover crop. */
-export function visiblePhotoFraction(image:HTMLImageElement,region:Rect,crop:Crop):number {
- const p=constrainCrop(image,region,crop),scale=Math.max(region.w/image.naturalWidth,region.h/image.naturalHeight)*p.zoom
- return region.w*region.h/(image.naturalWidth*image.naturalHeight*scale*scale)
-}
-function photo(c:Ctx,img:HTMLImageElement,r:Rect,crop:Crop){
- const p=constrainCrop(img,r,crop);const scale=Math.max(r.w/img.naturalWidth,r.h/img.naturalHeight)*p.zoom
- const w=img.naturalWidth*scale,h=img.naturalHeight*scale
- c.save();c.beginPath();c.rect(r.x,r.y,r.w,r.h);c.clip();c.drawImage(img,r.x+(r.w-w)/2+p.x,r.y+(r.h-h)/2+p.y,w,h);c.restore()
-}
+export { constrainCrop, visiblePhotoFraction } from './imageFit'
+import { drawPhoto as photo } from './imageFit'
 function shadow(c:Ctx,draw:()=>void){c.save();c.shadowColor='rgba(54,48,40,.18)';c.shadowBlur=22;c.shadowOffsetY=12;draw();c.restore()}
 function body(c:Ctx,t:MaterialTemplate){const x=(600-t.width)/2,y=(600-t.height)/2
  rounded(c,x,y,t.width,t.height,t.radius);c.fillStyle='#fffefb';c.fill(); c.strokeStyle='rgba(100,90,75,.12)';c.lineWidth=1;c.stroke()}
