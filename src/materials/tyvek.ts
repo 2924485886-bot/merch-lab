@@ -1,25 +1,17 @@
 /** Flat, full-bleed Tyvek mockup. Shared by live previews and PNG export. */
 type Ctx = CanvasRenderingContext2D
-// The photo covers this whole contour, including the shallow bevels at the bottom.
-const bodyPath=()=>new Path2D('M 92 230 Q 300 231 508 230 L 510 461 Q 510 474 503 482 L 472 510 Q 468 514 460 514 L 140 514 Q 133 514 129 510 L 98 482 Q 90 475 90 463 Z')
+// A 420-wide body: each straight bottom bevel cuts in 50.4 units (12%).
+// This same path defines the printed face, edge and cast shadow.
+const bodyPath=()=>new Path2D('M 90 230 H 510 V 460 L 459.6 514 H 140.4 L 90 460 Z')
 function stroke(c:Ctx,path:Path2D,color:string,width:number){c.strokeStyle=color;c.lineWidth=width;c.stroke(path)}
-function strap(c:Ctx,rear:boolean){
+function strap(c:Ctx){
  c.save()
- // Exactly two closed webbing ribbons, with different drapes and no stacked arc outlines.
- const band=new Path2D(rear
-  ?'M 201 233 C 206 174 213 114 235 94 C 256 76 356 77 379 94 C 392 114 398 174 404 233 L 388 233 C 384 178 381 124 369 107 C 351 92 264 91 247 107 C 229 127 223 179 217 233 Z'
-  :'M 183 245 C 185 194 194 138 212 103 C 228 73 339 79 359 105 C 381 143 390 196 394 245 L 376 245 C 373 196 369 152 344 117 C 330 96 241 92 228 116 C 212 149 205 199 201 245 Z')
+ // One complete inverted-U ribbon, drawn behind the body so both ends tuck inside.
+ const band=new Path2D('M 183 245 C 185 194 194 138 212 103 C 228 73 339 79 359 105 C 381 143 390 196 394 245 L 376 245 C 373 196 369 152 344 117 C 330 96 241 92 228 116 C 212 149 205 199 201 245 Z')
  c.fillStyle='#222222';c.fill(band)
  c.save();c.clip(band)
- // Soft textile lighting stays within the ribbon, without a hard rim highlight.
  const shade=c.createLinearGradient(182,100,397,240);shade.addColorStop(0,'rgba(255,255,255,.035)');shade.addColorStop(.5,'rgba(255,255,255,0)');shade.addColorStop(1,'rgba(0,0,0,.09)');c.fillStyle=shade;c.fillRect(180,73,226,175)
- c.drawImage(webbing(),0,0,600,600);c.restore()
- if(!rear){
-  // Short stitch lines attach the ribbon ends; there is no separate rectangular patch.
-  c.strokeStyle='rgba(177,177,171,.25)';c.lineWidth=.55;c.setLineDash([1,1.8]);c.beginPath()
-  c.moveTo(187,239);c.lineTo(198,239);c.moveTo(379,239);c.lineTo(391,239);c.stroke();c.setLineDash([])
- }
- c.restore()
+ c.drawImage(webbing(),0,0,600,600);c.restore();c.restore()
 }
 let webbingTexture:HTMLCanvasElement|undefined
 function webbing(){
@@ -46,7 +38,7 @@ function crease(c:Ctx,d:string,width:number,opacity:number){
 }
 export function renderTyvek(c:Ctx,drawPhoto:()=>void){
  const body=bodyPath()
- strap(c,true)
+ strap(c)
  // A shallow paper thickness and soft cast shadow sit behind the printed face.
  c.save();c.translate(.4,1);c.shadowColor='rgba(44,37,30,.18)';c.shadowBlur=15;c.shadowOffsetY=7;c.fillStyle='#b5afa4';c.fill(body);c.restore()
  c.save();c.clip(body)
@@ -59,12 +51,12 @@ export function renderTyvek(c:Ctx,drawPhoto:()=>void){
  crease(c,'M 496 293 Q 483 328 497 354',1.7,.045)
  crease(c,'M 205 455 Q 219 443 238 451',1.2,.025)
  // Printed bottom corners: subtle directional shade, never white triangles or a frame.
- const left=c.createLinearGradient(91,469,133,505);left.addColorStop(0,'rgba(31,25,19,.025)');left.addColorStop(1,'rgba(31,25,19,.095)');c.fillStyle=left;c.fill(new Path2D('M 90 463 L 135 491 L 129 513 L 98 482 Z'))
- const right=c.createLinearGradient(510,463,470,504);right.addColorStop(0,'rgba(31,25,19,.02)');right.addColorStop(1,'rgba(31,25,19,.075)');c.fillStyle=right;c.fill(new Path2D('M 510 461 L 469 490 L 472 513 L 503 482 Z'))
- crease(c,'M 91 463 L 135 491 M 509 462 L 469 490',.8,.085)
+ const left=c.createLinearGradient(90,460,145,506);left.addColorStop(0,'rgba(31,25,19,.025)');left.addColorStop(1,'rgba(31,25,19,.095)');c.fillStyle=left;c.fill(new Path2D('M 90 460 L 145 486 L 140.4 514 Z'))
+ const right=c.createLinearGradient(510,460,455,506);right.addColorStop(0,'rgba(31,25,19,.02)');right.addColorStop(1,'rgba(31,25,19,.075)');c.fillStyle=right;c.fill(new Path2D('M 510 460 L 455 486 L 459.6 514 Z'))
+ crease(c,'M 90 460 L 145 486 M 510 460 L 455 486',.8,.085)
  // Only a fine dark hem at the opening; artwork underneath remains full bleed.
- stroke(c,new Path2D('M 93 231 Q 300 232 507 231'),'rgba(33,27,21,.14)',.65)
+ stroke(c,new Path2D('M 91 231 H 509'),'rgba(33,27,21,.14)',.65)
  c.restore()
- // No light-coloured outside stroke: the contour itself defines the printed edge.
- strap(c,false)
+ // A fine inset dark edge reinforces the crisp paper contour without a plastic rim.
+ c.save();c.clip(body);stroke(c,body,'rgba(33,27,21,.18)',.8);c.restore()
 }
