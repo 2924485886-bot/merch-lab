@@ -18,7 +18,7 @@ export const initialStates=()=>Object.fromEntries(templates.map(t=>[t.id,{
  stripImages:[null,null,null,null],stripCrops:[0,1,2,3].map(i=>({...defaultCrop(),zoom:1+i*.075})),customAsset:null,
 }])) as Record<MaterialId,MaterialState>
 export interface RenderOptions {
- customCrop?:Crop; side?:Side; surfaceFinish?:Finish; sourceImage?:HTMLImageElement; angle?:Angle; foil?:Foil; acrylicShape?:AcrylicShape; customAsset?:ImageAsset|null;
+ transparentBackground?:boolean; customCrop?:Crop; side?:Side; surfaceFinish?:Finish; sourceImage?:HTMLImageElement; angle?:Angle; foil?:Foil; acrylicShape?:AcrylicShape; customAsset?:ImageAsset|null;
  stripImages?:(ImageAsset|null)[]; stripCrops?:Crop[]; presentation?:boolean
 }
 export const foilLabels:Record<Foil,string>={none:'无烫金',border:'金色边框',stars:'金色星星'}

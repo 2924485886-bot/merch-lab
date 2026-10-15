@@ -36,18 +36,18 @@ export function renderAcrylic(c:Ctx,t:MaterialTemplate,img:HTMLImageElement,crop
   const asset=options.customAsset
   if(!asset?.silhouette){
    const path=new Path2D();path.roundRect(212,180,176,245,25);c.strokeStyle='#c6d7dc';c.setLineDash([6,7]);c.lineWidth=2;c.stroke(path);c.setLineDash([])
-   if(t.id==='standee')base(c,300);else renderHardware(c,300,174)
+   if(t.id==='standee')base(c,300);else renderHardware(c,300,174,options.transparentBackground)
    c.fillStyle='#85959a';c.textAlign='center';c.font='13px sans-serif';c.fillText('需要透明底 PNG / WebP',300,291);c.font='10px sans-serif';c.fillText('在编辑页上传人物素材',300,316);return
   }
   const standee=t.id==='standee',{path,target,contact,hook}=customPath(asset,standee,constrainSilhouetteCrop(t,options.customCrop??{x:0,y:0,zoom:1}))
   if(standee){base(c,contact.x);c.beginPath();c.roundRect(contact.x-17,contact.y-9,34,Math.max(24,472-contact.y+9),5);c.fillStyle='rgba(211,233,239,.84)';c.fill();c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=2;c.stroke()}
   shell(c,path);c.save();c.clip(path);const b=asset.silhouette.bounds;c.drawImage(asset.image,b.x,b.y,b.w,b.h,target.x,target.y,target.w,target.h);c.restore();edge(c,path)
-  if(!standee)renderHardware(c,hook.x,hook.y-5)
+  if(!standee)renderHardware(c,hook.x,hook.y-5,options.transparentBackground)
   else{c.beginPath();c.ellipse(300,480,139,32,0,0,Math.PI);c.strokeStyle='rgba(255,255,255,.82)';c.lineWidth=2;c.stroke()}
  }else{
   const shape=options.acrylicShape??'rectangle',r=acrylicRegion(shape),path=new Path2D()
   if(shape==='circle')path.arc(r.x+r.w/2,r.y+r.h/2,r.w/2,0,Math.PI*2);else path.roundRect(r.x,r.y,r.w,r.h,shape==='square'?15:24)
-  shell(c,path);c.save();c.clip(path);drawPhoto(r);c.restore();edge(c,path);renderHardware(c,300,r.y-7)
+  shell(c,path);c.save();c.clip(path);drawPhoto(r);c.restore();edge(c,path);renderHardware(c,300,r.y-7,options.transparentBackground)
  }
  // Narrow, neutral edge glint, kept separate from the original print.
  void img;void crop
