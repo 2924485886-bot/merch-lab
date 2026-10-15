@@ -10,11 +10,13 @@ export interface Angle { x:number; y:number }
 export interface MaterialState {
  frontImage:ImageAsset|null; customCrop:Crop; side:Side; backImage:ImageAsset|null; backCrop:Crop; exportMode:ExportMode;
  crop:Crop; finish:Finish; foil:Foil; angle:Angle; acrylicShape:AcrylicShape;
+ whiteSource:ImageAsset|null; whiteTolerance:number; whiteAppliedTolerance:number|null;
  stripImages:(ImageAsset|null)[]; stripCrops:Crop[]; customAsset:ImageAsset|null
 }
 export const initialStates=()=>Object.fromEntries(templates.map(t=>[t.id,{
  frontImage:null,customCrop:defaultCrop(),side:'front',backImage:null,backCrop:defaultCrop(),exportMode:'both',
  crop:defaultCrop(),finish:t.defaultFinish,foil:'none',angle:{x:0,y:0},acrylicShape:'rectangle',
+ whiteSource:null,whiteTolerance:32,whiteAppliedTolerance:null,
  stripImages:[null,null,null,null],stripCrops:[0,1,2,3].map(i=>({...defaultCrop(),zoom:1+i*.075})),customAsset:null,
 }])) as Record<MaterialId,MaterialState>
 export interface RenderOptions {

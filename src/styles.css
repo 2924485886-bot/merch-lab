@@ -63,3 +63,5 @@ body:has(.app-shell:not(.home-theme)){background:var(--ml-tool-bg);color:var(--m
  .app-shell:not(.home-theme) .save-button:hover{background:#34373C}
 }
 .app-shell:not(.home-theme) :is(.secondary,.save-button,.shape-options button,.export-options button,.finish-option,.crop-ratios button):active{box-shadow:inset 0 0 0 1px #25252532}
+/* White-background input controls reuse the existing acrylic upload panel. */
+.white-removal-control{margin:15px 0 17px}.white-source-row{display:flex;gap:12px;align-items:center;margin-bottom:16px}.white-source-row img{width:43px;height:54px;object-fit:contain;background:white;border:1px solid var(--ml-line);border-radius:2px}.transparent-upload .white-source-row .secondary{flex:1;min-height:42px}.white-removal-control input[type=range]{margin:16px 0 9px}.white-removal-control small{margin-top:6px}
