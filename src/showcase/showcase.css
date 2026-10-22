@@ -10,3 +10,32 @@
 .showcase input[type=range]::-moz-range-track{height:4px;background:linear-gradient(90deg,var(--ml-blue) 50%,var(--ml-pink) 50%)}
 
 .studio-layout-options button:disabled{cursor:default;opacity:.4}
+
+/* On phones only the parameter body scrolls; the artwork always fits its own row. */
+@media(max-width:640px){
+ html:has(.showcase),body:has(.showcase){overflow:hidden;overscroll-behavior:none}
+ .showcase{position:fixed;inset:var(--studio-viewport-top,0px) 0 auto;z-index:20;box-sizing:border-box;height:100vh;height:var(--studio-viewport-height,100dvh);padding:calc(8px + env(safe-area-inset-top)) 22px calc(8px + env(safe-area-inset-bottom));background:var(--ml-tool-bg);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
+ .showcase-heading{position:static;flex:none;padding:4px 0}
+ .showcase-intro{flex:none;margin:10px 0 12px}
+ .showcase-intro h1{margin:6px 0}
+ .showcase>.error{flex:none;max-height:70px;overflow:auto;margin:4px 0}
+ .showcase-layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(100px,.9fr) minmax(170px,1fr);gap:12px;width:100%}
+ .showcase-preview-column{height:100%;min-height:0;display:flex;flex-direction:column}
+ .studio-canvas-meta{flex:none;margin-bottom:6px}
+ .showcase-stage-fit{flex:1;min-height:0;display:grid;place-items:center}
+ .showcase-stage-fit .showcase-artboard{--studio-max-height:var(--studio-fit-height,25svh);flex:none}
+ .showcase-hint{flex:none;margin:6px 0 0}
+ .showcase-controls{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+ .studio-tabs{position:static;flex:none;inset:auto;z-index:auto;border-top:0;border-bottom:1px solid var(--ml-line);padding:4px 0 8px;box-shadow:none}
+ .studio-parameter-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;scroll-padding-block:12px;padding-bottom:12px}
+ .studio-settings-panel{scroll-margin-top:0}
+ .studio-object-control{padding:10px 0}
+ .showcase input[type=range]{touch-action:pan-y}
+ .studio-color input:not([type=color]){font-size:16px}
+}
+@media(max-width:640px){
+ .showcase[data-compact=true] .showcase-intro{margin:2px 0}
+ .showcase[data-compact=true] .showcase-layout{grid-template-rows:minmax(40px,.7fr) minmax(90px,1fr);gap:6px}
+ .showcase[data-compact=true] .showcase-hint{margin:2px 0 0}
+}
+@media(max-width:640px){.showcase-controls{height:100%}}
