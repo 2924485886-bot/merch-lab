@@ -89,7 +89,13 @@ export default function App(){
    }
    const current=catalog.find(a=>a.materialId===selected&&a.side===(t.duplex?edit.side:'front'))!
    if(!current)throw new Error('当前物料尚未准备好，请稍后重试。')
-   setArtworks(catalog);setBoard(previous=>!previous?newBoard(current):previous.layers.some(l=>l.artwork.id===current.id)?previous:addArtwork(previous,current));setPage('showcase')
+   setArtworks(catalog);setBoard(previous=>{
+    if(!previous)return newBoard(current)
+    // Refresh material pixels while preserving the user's background, layering and transforms.
+    const layers=previous.layers.map(layer=>{const next=layer.artwork.kind==='material'?catalog.find(a=>a.materialId===layer.artwork.materialId&&a.side===layer.artwork.side):undefined;return next?{...layer,artwork:next}:layer})
+    const next={...previous,layers}
+    return layers.some(l=>l.artwork.id===current.id)?next:addArtwork(next,current)
+   });setPage('showcase')
   }catch(e){report(e)}finally{setStudioBusy(false)}
  }
  async function saveTransparent(){

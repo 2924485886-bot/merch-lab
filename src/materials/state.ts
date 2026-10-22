@@ -8,7 +8,7 @@ export type Foil = 'none' | 'border' | 'stars'
 export type AcrylicShape = 'rectangle' | 'square' | 'circle' | 'custom'
 export interface Angle { x:number; y:number }
 export interface MaterialState {
- frontImage:ImageAsset|null; customCrop:Crop; side:Side; backImage:ImageAsset|null; backCrop:Crop; exportMode:ExportMode;
+ texts?:Partial<Record<Side,Record<string,string>>>; frontImage:ImageAsset|null; customCrop:Crop; side:Side; backImage:ImageAsset|null; backCrop:Crop; exportMode:ExportMode;
  crop:Crop; finish:Finish; foil:Foil; angle:Angle; acrylicShape:AcrylicShape;
  whiteSource:ImageAsset|null; whiteTolerance:number; whiteAppliedTolerance:number|null;
  stripImages:(ImageAsset|null)[]; stripCrops:Crop[]; customAsset:ImageAsset|null
@@ -20,7 +20,7 @@ export const initialStates=()=>Object.fromEntries(templates.map(t=>[t.id,{
  stripImages:[null,null,null,null],stripCrops:[0,1,2,3].map(i=>({...defaultCrop(),zoom:1+i*.075})),customAsset:null,
 }])) as Record<MaterialId,MaterialState>
 export interface RenderOptions {
- transparentBackground?:boolean; customCrop?:Crop; side?:Side; surfaceFinish?:Finish; sourceImage?:HTMLImageElement; angle?:Angle; foil?:Foil; acrylicShape?:AcrylicShape; customAsset?:ImageAsset|null;
+ texts?:Partial<Record<Side,Record<string,string>>>; transparentBackground?:boolean; customCrop?:Crop; side?:Side; surfaceFinish?:Finish; sourceImage?:HTMLImageElement; angle?:Angle; foil?:Foil; acrylicShape?:AcrylicShape; customAsset?:ImageAsset|null;
  stripImages?:(ImageAsset|null)[]; stripCrops?:Crop[]; presentation?:boolean
 }
 export const foilLabels:Record<Foil,string>={none:'无烫金',border:'金色边框',stars:'金色星星'}
